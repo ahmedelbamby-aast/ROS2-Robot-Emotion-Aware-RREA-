@@ -1,0 +1,19 @@
+FROM emotion_robot:laptop
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV BACKEND=openvino \
+    OPENVINO_LOG_LEVEL=2 \
+    OPENVINO_TBB_TERMINATE_WITHOUT_THROW=1 \
+    OPENVINO_CACHE_DIR=/var/cache/openvino \
+    OPENVINO_DEVICE=CPU \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+RUN set -eux; \
+    mkdir -p /app /var/cache/openvino /tmp/emotion_robot && \
+    chmod 1777 /tmp/emotion_robot
+
+CMD ["python3", "-c", "print('emotion_robot backend=openvino runtime ready')"]

@@ -1,0 +1,29 @@
+deployment:
+  mode: laptop_offload
+gateway:
+  transport: local_tcp
+  port: 8765
+  local_host: 127.0.0.1
+ngrok:
+  enabled: false
+  authtoken_env: NGROK_AUTHTOKEN
+  reserved_tcp_addr: ''
+  use_ephemeral_tcp: true
+inference:
+  backend: auto
+  device: auto
+audio:
+  input_topic: /audio/raw
+  emotion_topic: /audio/emotion
+  sample_rate_hz: 16000
+  chunk_bytes: 4096
+stt:
+  enabled: false
+  backend: mock
+  language: en-US
+  transcript_topic: /text/raw
+tts:
+  enabled: false
+  backend: mock
+  voice: default
+  output_topic: /speech/out

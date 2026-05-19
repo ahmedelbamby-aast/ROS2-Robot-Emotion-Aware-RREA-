@@ -1,0 +1,6 @@
+[console_scripts]
+laptop_gateway_node = emotion_robot_bringup.laptop_gateway_node:main
+laptop_inference_node = emotion_robot_bringup.laptop_inference_node:main
+robot_gateway_node = emotion_robot_bringup.robot_gateway_node:main
+robot_pipeline_node = emotion_robot_bringup.robot_pipeline_node:main
+

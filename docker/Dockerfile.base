@@ -1,0 +1,11 @@
+FROM ros:humble-ros-base
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip python3-colcon-common-extensions python3-rosdep \
+    ros-humble-image-transport ros-humble-cv-bridge ros-humble-tf2-msgs \
+    ros-humble-nav-msgs ros-humble-diagnostic-msgs ros-humble-sensor-msgs \
+    ros-humble-std-msgs \
+    net-tools iputils-ping curl jq alsa-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace

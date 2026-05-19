@@ -1,0 +1,52 @@
+name: emotion_robot
+
+services:
+  robot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.robot
+    image: emotion_robot:robot
+    profiles: ["robot"]
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../ros2_ws:/workspace/ros2_ws
+      - ../config:/workspace/config
+      - ../models:/workspace/models
+      - ../runtime:/workspace/runtime
+    devices:
+      - ${VIDEO_DEVICE_PRIMARY:-/dev/video0}:${VIDEO_DEVICE_PRIMARY:-/dev/video0}
+      - ${VIDEO_DEVICE_SECONDARY:-/dev/video1}:${VIDEO_DEVICE_SECONDARY:-/dev/video1}
+    command: ["bash", "-lc", "sleep infinity"]
+
+  laptop:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.laptop
+    image: emotion_robot:laptop
+    profiles: ["laptop"]
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../ros2_ws:/workspace/ros2_ws
+      - ../config:/workspace/config
+      - ../models:/workspace/models
+      - ../runtime:/workspace/runtime
+    devices:
+      - ${VIDEO_DEVICE_PRIMARY:-/dev/video0}:${VIDEO_DEVICE_PRIMARY:-/dev/video0}
+      - ${VIDEO_DEVICE_SECONDARY:-/dev/video1}:${VIDEO_DEVICE_SECONDARY:-/dev/video1}
+    command: ["bash", "-lc", "sleep infinity"]
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    profiles: ["ngrok"]
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - GATEWAY_PORT=${GATEWAY_PORT:-8765}
+    command: ["tcp", "${GATEWAY_PORT:-8765}"]

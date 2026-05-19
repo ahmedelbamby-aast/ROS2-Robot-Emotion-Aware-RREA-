@@ -1,0 +1,54 @@
+running egg_info
+creating ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info
+writing ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/PKG-INFO
+writing dependency_links to ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/dependency_links.txt
+writing entry points to ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/entry_points.txt
+writing requirements to ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/requires.txt
+writing top-level names to ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/top_level.txt
+writing manifest file '../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/SOURCES.txt'
+reading manifest file '../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/SOURCES.txt'
+writing manifest file '../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+copying emotion_robot_bringup/robot_gateway_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+copying emotion_robot_bringup/laptop_gateway_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+copying emotion_robot_bringup/robot_pipeline_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+copying emotion_robot_bringup/common.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+copying emotion_robot_bringup/laptop_inference_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+copying emotion_robot_bringup/__init__.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup
+running install
+running install_lib
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+copying /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup/robot_gateway_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+copying /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup/laptop_gateway_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+copying /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup/robot_pipeline_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+copying /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup/common.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+copying /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup/laptop_inference_node.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+copying /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/build/lib/emotion_robot_bringup/__init__.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup
+byte-compiling /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup/robot_gateway_node.py to robot_gateway_node.cpython-310.pyc
+byte-compiling /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup/laptop_gateway_node.py to laptop_gateway_node.cpython-310.pyc
+byte-compiling /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup/robot_pipeline_node.py to robot_pipeline_node.cpython-310.pyc
+byte-compiling /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup/common.py to common.cpython-310.pyc
+byte-compiling /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup/laptop_inference_node.py to laptop_inference_node.cpython-310.pyc
+byte-compiling /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup/__init__.py to __init__.cpython-310.pyc
+running install_data
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/ament_index
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/ament_index/resource_index
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/ament_index/resource_index/packages
+copying resource/emotion_robot_bringup -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/ament_index/resource_index/packages
+copying package.xml -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/emotion_robot_bringup
+creating /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/emotion_robot_bringup/launch
+copying launch/robot_only.launch.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/emotion_robot_bringup/launch
+copying launch/robot_endpoint.launch.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/emotion_robot_bringup/launch
+copying launch/laptop_inference.launch.py -> /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/share/emotion_robot_bringup/launch
+running install_egg_info
+Copying ../../build/emotion_robot_bringup/emotion_robot_bringup.egg-info to /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/python3.10/site-packages/emotion_robot_bringup-0.1.0-py3.10.egg-info
+running install_scripts
+Installing laptop_gateway_node script to /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/emotion_robot_bringup
+Installing laptop_inference_node script to /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/emotion_robot_bringup
+Installing robot_gateway_node script to /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/emotion_robot_bringup
+Installing robot_pipeline_node script to /home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/install/emotion_robot_bringup/lib/emotion_robot_bringup
+writing list of installed files to '/home/mohamed/Desktop/Cognitive Project/emotion_robot/ros2_ws/build/emotion_robot_bringup/install.log'
