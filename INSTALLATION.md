@@ -180,3 +180,23 @@ If ASTRA is present in `lsusb` but no frames:
   - Workaround: export env var defined by `ngrok.authtoken_env` before `scripts/up.sh`.
 - Blocker: first inference run stalls on model download.
   - Workaround: predownload models before integration tests/demos.
+
+## Latest Mustar Readiness (May 20, 2026)
+
+- Camera path validated on Mustar using `astra_camera` via `rchomeedu_vision/multi_astra.launch`.
+- Confirmed live RGB stream publication on both `/camera_top/rgb/image_raw` and `/camera/rgb/image_raw` at approximately 28-29 Hz.
+- Project defaults updated for Mustar ASTRA flow:
+  - `vision.source: astra`
+  - `vision.input_topic: /camera_top/rgb/image_raw`
+  - `vision.astra_bridge_cmd` launches the proven Mustar ROS1 ASTRA stack.
+- Added helper script: `scripts/start_mustar_astra_host.sh` for host-side ASTRA bringup and quick verification.
+- Microphone readiness validated on Mustar host with non-zero captured signal (`rms=315`, `max=2325`).
+- Speaker readiness validated on Mustar host (`aplay` playback successful).
+
+### Status
+
+- Camera: Ready (host-level, real frames confirmed)
+- Microphone: Ready (host-level)
+- Speaker: Ready (host-level)
+- Full dual-mode E2E: pending final model cache completion and integrated runtime validation
+
