@@ -13,11 +13,11 @@ inference:
   backend: auto
   device: auto
 vision:
-  source: uvc
-  input_topic: /camera/image_raw
+  source: astra
+  input_topic: /camera_top/rgb/image_raw
   emotion_topic: /camera/emotion
   uvc_device: /dev/video0
-  astra_bridge_cmd: ''
+  astra_bridge_cmd: source /opt/ros/melodic/setup.bash && source /home/mustar/catkin_ws/devel/setup.bash && roslaunch rchomeedu_vision multi_astra.launch
 audio:
   input_topic: /audio/raw
   emotion_topic: /audio/emotion
