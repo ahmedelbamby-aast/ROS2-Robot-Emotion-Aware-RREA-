@@ -2,6 +2,14 @@
 
 This is the project-level execution tracker synchronized to current implementation.
 
+## Real-World Blockers Snapshot (May 20, 2026)
+
+- Mustar operations depend on stable SSH access and code sync workflow before runtime checks.
+- Ubuntu 18.04 environments often miss Docker Compose v2 plugin; this blocks all `scripts/up.sh` paths until fixed.
+- ORBBEC ASTRA camera path is non-UVC and requires USB pass-through troubleshooting, not `/dev/video*` assumptions.
+- First-run inference delays are dominated by model download; predownload workflow is now required for reliable demos/tests.
+- Laptop offload failures are commonly startup-order issues; laptop inference must be started before robot endpoint.
+
 - Phase details: [tasks_phase1_foundation.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks_phase1_foundation.md)
 - Phase details: [tasks_phase2_modalities.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks_phase2_modalities.md)
 - Phase details: [tasks_phase3_validation_docs.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks_phase3_validation_docs.md)

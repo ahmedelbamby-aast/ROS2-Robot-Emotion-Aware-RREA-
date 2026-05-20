@@ -2,6 +2,16 @@
 
 This document is the source of truth for required ROS topics and message contracts.
 
+## Operational Reality (May 20, 2026)
+
+- This contract is used in both deployment modes:
+  - `robot_only`
+  - `laptop_offload` (robot feed + laptop inference + robot speaker output)
+- Camera source constraints apply at runtime:
+  - `vision.source=uvc` expects `/dev/video*`
+  - `vision.source=astra` expects ORBBEC ASTRA over `/dev/bus/usb` (non-UVC path)
+- For offload mode validation, laptop gateway must be started before robot endpoint.
+
 ## Status (May 19, 2026)
 
 - Contract topics below are implemented in the current pipeline.

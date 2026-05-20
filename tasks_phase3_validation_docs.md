@@ -1,5 +1,12 @@
 # Phase 3 Tasks: Validation, Documentation, and Final Acceptance
 
+## Runtime Issues Seen in Practice (May 20, 2026)
+
+- Compose v2 plugin absence remains a recurrent setup blocker on older Ubuntu hosts.
+- ngrok validations remain token-gated and should be marked blocked when `NGROK_AUTHTOKEN` is unavailable.
+- Camera validation must branch by source mode (`uvc` vs `astra`) to avoid false negatives.
+- Offload validation failures are frequently caused by launch order and host/port mismatch.
+
 ## Scope
 Phase 3 covers:
 

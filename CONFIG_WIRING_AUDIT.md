@@ -2,6 +2,15 @@
 
 This file maps `config/project.yaml` keys to runtime consumers.
 
+## Field Constraints (May 20, 2026)
+
+- Compose invocation is v2 only (`docker compose`); legacy `docker-compose` v1 is unsupported in this repo scripts path.
+- `vision.source=astra` must be treated as non-UVC camera mode with USB bus mapping.
+- `deployment.mode=laptop_offload` requires startup ordering:
+  1. laptop inference launch
+  2. robot endpoint launch
+- `scripts/deploy_mustar.sh` now includes model predownload (Whisper + HF sentiment model) and should be preferred for first-run reliability.
+
 Legend:
 - `Wired`: key affects runtime behavior now.
 - `Partial`: key exists but behavior is incomplete or indirect.

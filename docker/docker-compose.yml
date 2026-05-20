@@ -16,9 +16,6 @@ services:
       - ../config:/workspace/config
       - ../models:/workspace/models
       - ../runtime:/workspace/runtime
-    devices:
-      - ${VIDEO_DEVICE_PRIMARY:-/dev/video0}:${VIDEO_DEVICE_PRIMARY:-/dev/video0}
-      - ${VIDEO_DEVICE_SECONDARY:-/dev/video1}:${VIDEO_DEVICE_SECONDARY:-/dev/video1}
     command: ["bash", "-lc", "sleep infinity"]
 
   laptop:
@@ -36,9 +33,6 @@ services:
       - ../config:/workspace/config
       - ../models:/workspace/models
       - ../runtime:/workspace/runtime
-    devices:
-      - ${VIDEO_DEVICE_PRIMARY:-/dev/video0}:${VIDEO_DEVICE_PRIMARY:-/dev/video0}
-      - ${VIDEO_DEVICE_SECONDARY:-/dev/video1}:${VIDEO_DEVICE_SECONDARY:-/dev/video1}
     command: ["bash", "-lc", "sleep infinity"]
 
   ngrok:

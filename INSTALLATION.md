@@ -1,59 +1,33 @@
 # Installation Guide
 
-This guide covers full setup for Linux and Windows.
+Last updated: May 20, 2026.
 
-## Status Note (May 19, 2026)
+This guide reflects current field setup patterns and known issues.
 
-- Installation and run path is working for current pipeline.
-- Not all checklist quality targets are complete yet:
-  - vision/audio emotion quality still has heuristic behavior,
-  - STT backend quality is still not Whisper-first production behavior.
-- Foundation wiring truth is tracked in [CONFIG_WIRING_AUDIT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/CONFIG_WIRING_AUDIT.md).
+## 1. Linux Prerequisites
 
-## 1. Repository Layout
+### 1.1 Ubuntu 18.04 (CLI-only Docker path)
 
-Expected root:
-
-- `ROS2-Robot-Emotion-Aware-RREA-/`
-- `ROS2-Robot-Emotion-Aware-RREA-/docker/`
-- `ROS2-Robot-Emotion-Aware-RREA-/scripts/`
-- `ROS2-Robot-Emotion-Aware-RREA-/scripts/windows/`
-- `ROS2-Robot-Emotion-Aware-RREA-/config/project.yaml`
-
-## 2. Linux Installation (Ubuntu 22.04+ Recommended)
-
-### 2.1 Prerequisites
-
-Install required system tools:
+Ubuntu 18.04 operators should use Docker Engine + CLI only.
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y \
-  ca-certificates curl gnupg lsb-release \
-  python3 python3-pip git
-```
-
-Install Docker Engine + Docker Compose plugin (official Docker docs method):
-
-```bash
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository \
+  "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable"
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 ```
 
-Add your user to docker group (to avoid `docker.sock` permission errors):
+Install Docker Compose v2 plugin (required for this repo):
 
 ```bash
-sudo usermod -aG docker "$USER"
-newgrp docker
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -SL https://github.com/docker/compose/releases/download/v2.27.1/docker-compose-linux-$(uname -m) \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ```
 
 Verify:
@@ -61,305 +35,148 @@ Verify:
 ```bash
 docker --version
 docker compose version
-docker info
 ```
 
-### 2.2 Project Dependencies
+### 1.2 Ubuntu 20.04/22.04+
 
-From project root:
+Use Docker official apt repo and install plugin package:
 
 ```bash
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+## 2. Docker Group and Base Tools
+
+```bash
+sudo usermod -aG docker "$USER"
+newgrp docker
+sudo apt-get install -y python3 python3-pip git
+```
+
+## 3. Clone and Repo Dependency
+
+```bash
+git clone <repo_url>
 cd ROS2-Robot-Emotion-Aware-RREA-
 python3 -m pip install --user pyyaml
 ```
 
-### 2.3 Optional: ngrok for `ngrok_tcp`
-
-If using `gateway.transport=ngrok_tcp`, create ngrok account and export token:
+## 4. Mustar SSH Setup
 
 ```bash
-export NGROK_AUTHTOKEN=<your_token>
+ssh-keygen -t ed25519 -C "mustar-ops" -f ~/.ssh/mustar_ed25519
+ssh-copy-id -i ~/.ssh/mustar_ed25519.pub <mustar_user>@<mustar_ip>
+ssh -i ~/.ssh/mustar_ed25519 <mustar_user>@<mustar_ip>
 ```
 
-### 2.4 Build Images
+Optional sync from laptop to robot:
 
 ```bash
-cd ROS2-Robot-Emotion-Aware-RREA-
+rsync -avz --delete --exclude '.git' ./ <mustar_user>@<mustar_ip>:~/ROS2-Robot-Emotion-Aware-RREA-/
+```
+
+## 5. Configure Runtime Mode
+
+```bash
+scripts/config.sh set deployment.mode robot_only
+scripts/config.sh set gateway.transport local_tcp
+```
+
+For ASTRA camera:
+
+```bash
+scripts/config.sh set vision.source astra
+```
+
+## 6. Build and Start
+
+```bash
 scripts/build.sh
-```
-
-### 2.5 Start Containers
-
-```bash
 scripts/up.sh
-```
-
-Health check:
-
-```bash
-docker compose -f docker/docker-compose.yml ps
 scripts/doctor.sh
 ```
 
-### 2.6 One-Command Mustar Deploy (Recommended)
-
-For Mustar on-board camera/mic/speaker deployment:
+## 7. One-Command Mustar Deployment
 
 ```bash
-cd ROS2-Robot-Emotion-Aware-RREA-
 scripts/deploy_mustar.sh robot_only
 ```
 
-This command runs preflight checks for camera/mic/speaker, builds images, builds `ros2_ws`, and launches the robot bringup.
-
-For laptop offload:
+or:
 
 ```bash
 scripts/deploy_mustar.sh laptop_offload
 ```
 
-## 3. Windows Installation (Windows 10/11 + Docker Desktop)
+## 8. Offload Sync Workflow (Robot + Laptop)
 
-### 3.1 Prerequisites
-
-Install:
-
-- Docker Desktop (WSL2 backend enabled)
-- Python 3.10+
-- Git for Windows
-- PowerShell 7+ (recommended)
-
-Enable Docker Desktop integration for your WSL distro if you use WSL.
-
-Verify in PowerShell:
-
-```powershell
-docker --version
-docker compose version
-python --version
-```
-
-### 3.2 Execution Policy
-
-Allow local scripts for current user (once):
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-### 3.3 Project Dependencies
-
-```powershell
-cd ROS2-Robot-Emotion-Aware-RREA-
-.\scripts\windows\install_deps.ps1
-```
-
-### 3.4 Optional: ngrok for `ngrok_tcp`
-
-```powershell
-$env:NGROK_AUTHTOKEN = "<your_token>"
-```
-
-### 3.5 Build + Start
-
-```powershell
-.\scripts\windows\build.ps1
-.\scripts\windows\up.ps1
-```
-
-Health check:
-
-```powershell
-.\scripts\windows\doctor.ps1
-docker compose -f docker/docker-compose.yml ps
-```
-
-## 4. Runtime Modes
-
-Set mode and transport with config scripts.
-
-Linux:
+1. Start laptop side first:
 
 ```bash
-scripts/config.sh set deployment.mode robot_only
-scripts/config.sh set gateway.transport local_tcp
-```
-
-Windows:
-
-```powershell
-.\scripts\windows\config.ps1 set deployment.mode robot_only
-.\scripts\windows\config.ps1 set gateway.transport local_tcp
-```
-
-Supported:
-
-- `deployment.mode`: `robot_only` | `laptop_offload`
-- `gateway.transport`: `local_tcp` | `ngrok_tcp`
-- `inference.backend`: `auto` | `cpu` | `openvino` | `tensorrt`
-
-## 5. Audio I/O and STT/TTS Configuration
-
-Default config path: `config/project.yaml`
-
-Relevant keys:
-
-- `audio.input_topic`, `audio.emotion_topic`, `audio.sample_rate_hz`, `audio.chunk_bytes`
-- `stt.enabled`, `stt.backend`, `stt.language`, `stt.transcript_topic`
-- `tts.enabled`, `tts.backend`, `tts.voice`, `tts.output_topic`
-
-Notes:
-
-- Default repo config currently has `stt.enabled: true` and `tts.enabled: true`.
-- Launch files wire `stt.enabled`, `stt.backend`, `stt.transcript_topic`, `audio.input_topic`, `tts.enabled`, `tts.backend`, and `tts.output_topic`.
-- Fallback semantics:
-  - `stt.backend=mock` maps to STT `none` backend with fallback transcript behavior.
-  - `tts.backend=mock` maps to TTS `none` engine with log-only fallback.
-
-Linux commands:
-
-```bash
-scripts/config.sh get audio.sample_rate_hz
-scripts/config.sh set audio.sample_rate_hz 16000
-scripts/config.sh set stt.enabled true
-scripts/config.sh set stt.language en-US
-scripts/config.sh set tts.enabled true
-scripts/config.sh set tts.voice default
-```
-
-Windows PowerShell commands:
-
-```powershell
-.\scripts\windows\config.ps1 get audio.sample_rate_hz
-.\scripts\windows\config.ps1 set audio.sample_rate_hz 16000
-.\scripts\windows\config.ps1 set stt.enabled true
-.\scripts\windows\config.ps1 set stt.language en-US
-.\scripts\windows\config.ps1 set tts.enabled true
-.\scripts\windows\config.ps1 set tts.voice default
-```
-
-`robot_only` run sequence:
-
-Linux:
-
-```bash
-scripts/config.sh set deployment.mode robot_only
-scripts/up.sh
-docker compose -f docker/docker-compose.yml exec robot bash -lc "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 launch emotion_robot_bringup robot_only.launch.py"
-```
-
-Windows:
-
-```powershell
-.\scripts\windows\config.ps1 set deployment.mode robot_only
-.\scripts\windows\up.ps1
-.\scripts\windows\launch_robot_only.ps1
-```
-
-`laptop_offload` run sequence:
-
-Linux:
-
-```bash
-scripts/config.sh set deployment.mode laptop_offload
-scripts/config.sh set gateway.transport local_tcp
-scripts/up.sh
 docker compose -f docker/docker-compose.yml exec laptop bash -lc "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 launch emotion_robot_bringup laptop_inference.launch.py"
+```
+
+2. Start robot endpoint second:
+
+```bash
 export ROBOT_GATEWAY_HOST=127.0.0.1
 docker compose -f docker/docker-compose.yml exec robot bash -lc "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 launch emotion_robot_bringup robot_endpoint.launch.py"
 ```
 
-Windows:
+3. Validate connection in robot logs.
 
-```powershell
-.\scripts\windows\config.ps1 set deployment.mode laptop_offload
-.\scripts\windows\config.ps1 set gateway.transport local_tcp
-.\scripts\windows\up.ps1
-.\scripts\windows\launch_laptop_inference.ps1
-$env:ROBOT_GATEWAY_HOST = "127.0.0.1"
-.\scripts\windows\launch_robot_endpoint.ps1
-```
+## 9. Predownload Models (Whisper + Hugging Face)
 
-## 6. Common Troubleshooting
-
-### 6.1 Docker socket permission denied (Linux)
-
-Symptom:
-
-- `permission denied while trying to connect to the docker API`
-
-Fix:
+Automatic in `deploy_mustar.sh`. Manual predownload:
 
 ```bash
-sudo usermod -aG docker "$USER"
-newgrp docker
+docker compose -f docker/docker-compose.yml exec -T robot bash -lc "python3 - <<'PY'
+from huggingface_hub import snapshot_download
+import whisper
+whisper.load_model('base')
+snapshot_download(repo_id='cardiffnlp/twitter-roberta-base-sentiment-latest')
+print('prefetch complete')
+PY"
 ```
 
-### 6.2 `emotion_robot_base:latest` not found
+## 10. Camera Troubleshooting Paths
 
-Build base image first:
+UVC path:
 
 ```bash
-scripts/build.sh
+scripts/config.sh set vision.source uvc
+ls -l /dev/video0 /dev/video1
 ```
 
-### 6.3 `robot_endpoint` connection refused
-
-Cause: laptop gateway is not running.
-
-Fix:
-
-1. Start containers with `scripts/up.sh`
-2. Start laptop launch first (`laptop_inference.launch.py`)
-3. Then start robot endpoint launch
-
-### 6.4 ngrok not reachable
-
-Check:
-
-- token env var is set
-- ngrok container running
-- `runtime/ngrok.env` generated
-
-Linux:
+ASTRA path:
 
 ```bash
-scripts/ngrok-url.sh
+scripts/config.sh set vision.source astra
+lsusb | grep -i -E 'orbbec|2bc5'
+ls -l /dev/bus/usb
 ```
 
-Windows:
+If ASTRA is present in `lsusb` but no frames:
 
-```powershell
-.\scripts\windows\ngrok-url.ps1
-```
+1. Restart containers: `scripts/down.sh && scripts/up.sh`
+2. Re-run `scripts/deploy_mustar.sh robot_only`
+3. Confirm camera source startup command in logs (`openni2` bridge path)
 
-## 7. Cleanup
+## 11. Known Blockers and Workarounds
 
-Linux:
-
-```bash
-scripts/down.sh
-scripts/clean.sh
-```
-
-Windows:
-
-```powershell
-.\scripts\windows\down.ps1
-.\scripts\windows\clean.ps1
-```
-
-## 8. Known Current State (May 19, 2026)
-
-- Container audio mapping via `/dev/snd` is auto-enabled when available by `scripts/up.sh` and `.\scripts\windows\up.ps1`.
-- Linux validation confirmed `scripts/audio-test.sh robot 3` passes end-to-end in container (record + playback).
-
-## 9. Installation Completion Checklist (Owner Ready)
-
-- [ ] `PLAT` Validate Linux prerequisites and Docker/Compose versions on target machine.
-- [ ] `PLAT` Validate Windows prerequisites and Docker Desktop/WSL integration.
-- [ ] `PLAT` Build images from clean checkout.
-- [ ] `ROS` Verify launch success for `robot_only`.
-- [ ] `ROS` Verify launch success for `laptop_offload` with `local_tcp`.
-- [ ] `QA` Run doctor + test commands and archive outputs.
-- [ ] `DOCS` Mark completion status in [tasks_phase1_foundation.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks_phase1_foundation.md).
+- Blocker: only `docker-compose` v1 installed.
+  - Workaround: install Compose v2 plugin; use `docker compose`.
+- Blocker: missing `/dev/snd` on host.
+  - Workaround: host audio stack/permissions must be fixed before STT/TTS validation.
+- Blocker: ngrok transport with missing token.
+  - Workaround: export env var defined by `ngrok.authtoken_env` before `scripts/up.sh`.
+- Blocker: first inference run stalls on model download.
+  - Workaround: predownload models before integration tests/demos.

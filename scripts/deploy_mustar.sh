@@ -9,6 +9,7 @@ COMPOSE=(docker compose -f "$COMPOSE_FILE")
 VIDEO_PRIMARY="${VIDEO_DEVICE_PRIMARY:-/dev/video0}"
 VIDEO_SECONDARY="${VIDEO_DEVICE_SECONDARY:-/dev/video1}"
 ALLOW_NO_VIDEO="${ALLOW_NO_VIDEO:-0}"
+ASTRA_USB_VENDOR_ID="${ASTRA_USB_VENDOR_ID:-2bc5}"
 MODE_OVERRIDE="${1:-}"
 
 usage() {
@@ -61,19 +62,53 @@ fi
 
 echo "[mustar] mode=$mode"
 echo "[mustar] host preflight"
+camera_source="$(python3 scripts/lib_config.py get vision.source 2>/dev/null || echo uvc)"
+camera_source="$(echo "$camera_source" | tr '[:upper:]' '[:lower:]')"
 
 if [[ ! -d /dev/snd ]]; then
   echo "Host audio devices missing: /dev/snd not found (mic/speaker unavailable)" >&2
   exit 1
 fi
 
-if [[ ! -e "$VIDEO_PRIMARY" && ! -e "$VIDEO_SECONDARY" && "$ALLOW_NO_VIDEO" != "1" ]]; then
-  echo "Host camera devices missing: neither $VIDEO_PRIMARY nor $VIDEO_SECONDARY exists" >&2
-  exit 1
+case "$camera_source" in
+  uvc)
+    if [[ ! -e "$VIDEO_PRIMARY" && ! -e "$VIDEO_SECONDARY" && "$ALLOW_NO_VIDEO" != "1" ]]; then
+      echo "Host camera devices missing for UVC mode: neither $VIDEO_PRIMARY nor $VIDEO_SECONDARY exists" >&2
+      exit 1
+    fi
+    ;;
+  astra)
+    if [[ ! -d /dev/bus/usb ]]; then
+      echo "Host USB bus missing for ASTRA mode: /dev/bus/usb not found" >&2
+      exit 1
+    fi
+    if command -v lsusb >/dev/null 2>&1; then
+      if ! lsusb -d "${ASTRA_USB_VENDOR_ID}:" >/dev/null 2>&1; then
+        echo "ASTRA USB vendor ${ASTRA_USB_VENDOR_ID}: not detected by lsusb" >&2
+        exit 1
+      fi
+    else
+      echo "Warning: lsusb unavailable; skipping ASTRA USB vendor check"
+    fi
+    ;;
+  none)
+    echo "[mustar] camera preflight skipped (vision.source=none)"
+    ;;
+  *)
+    echo "Invalid vision.source: $camera_source (expected uvc|astra|none)" >&2
+    exit 1
+    ;;
+esac
+
+if [[ "$camera_source" == "uvc" ]]; then
+  echo "- host video devices"
+  ls -1 /dev/video* 2>/dev/null | sed 's/^/  /' || true
+fi
+if [[ "$camera_source" == "astra" ]]; then
+  echo "- host ASTRA USB devices"
+  lsusb 2>/dev/null | rg -i "orbbec|${ASTRA_USB_VENDOR_ID}" | sed 's/^/  /' || true
 fi
 
-echo "- host video devices"
-ls -1 /dev/video* 2>/dev/null | sed 's/^/  /' || true
 echo "- host audio devices"
 ls -1 /dev/snd 2>/dev/null | sed 's/^/  /' || true
 
@@ -97,12 +132,19 @@ check_container_av() {
     exit 1
   fi
 
-  if [[ "$ALLOW_NO_VIDEO" != "1" ]] && ! "${COMPOSE[@]}" exec -T "$service" bash -lc "test -e '$VIDEO_PRIMARY' || test -e '$VIDEO_SECONDARY'"; then
-    echo "$service: camera device mapping missing ($VIDEO_PRIMARY / $VIDEO_SECONDARY)" >&2
-    exit 1
+  if [[ "$camera_source" == "uvc" ]]; then
+    if [[ "$ALLOW_NO_VIDEO" != "1" ]] && ! "${COMPOSE[@]}" exec -T "$service" bash -lc "test -e '$VIDEO_PRIMARY' || test -e '$VIDEO_SECONDARY'"; then
+      echo "$service: UVC camera device mapping missing ($VIDEO_PRIMARY / $VIDEO_SECONDARY)" >&2
+      exit 1
+    fi
+  elif [[ "$camera_source" == "astra" ]]; then
+    if ! "${COMPOSE[@]}" exec -T "$service" test -d /dev/bus/usb; then
+      echo "$service: ASTRA USB mapping missing (/dev/bus/usb)" >&2
+      exit 1
+    fi
   fi
 
-  "${COMPOSE[@]}" exec -T "$service" bash -lc 'echo "  audio capture devices:"; arecord -l || true; echo "  audio playback devices:"; aplay -l || true; echo "  video devices:"; ls -1 /dev/video* 2>/dev/null || true'
+  "${COMPOSE[@]}" exec -T "$service" bash -lc 'echo "  audio capture devices:"; arecord -l || true; echo "  audio playback devices:"; aplay -l || true; echo "  video devices:"; ls -1 /dev/video* 2>/dev/null || true; echo "  usb bus (camera mode dependent):"; ls -1 /dev/bus/usb 2>/dev/null || true'
 }
 
 check_container_av robot

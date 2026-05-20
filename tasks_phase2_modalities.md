@@ -1,5 +1,11 @@
 # Phase 2 Tasks - Modalities Pipeline
 
+## Current Field Notes (May 20, 2026)
+
+- ORBBEC ASTRA deployments require non-UVC acquisition path and dedicated troubleshooting flow.
+- Model warm-up (Whisper + Hugging Face sentiment model) should be completed before modality validation to avoid first-run stalls.
+- In `laptop_offload`, modality validation is only meaningful after confirmed robot<->laptop gateway sync.
+
 ## Scope
 Phase 2 covers these modality and behavior streams:
 - Vision emotion (`/camera/image_raw` -> `/camera/emotion`)

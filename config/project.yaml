@@ -12,6 +12,12 @@ ngrok:
 inference:
   backend: auto
   device: auto
+vision:
+  source: uvc
+  input_topic: /camera/image_raw
+  emotion_topic: /camera/emotion
+  uvc_device: /dev/video0
+  astra_bridge_cmd: ''
 audio:
   input_topic: /audio/raw
   emotion_topic: /audio/emotion

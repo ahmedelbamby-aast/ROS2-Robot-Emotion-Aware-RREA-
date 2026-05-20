@@ -1,183 +1,121 @@
-# Emotion Robot
+# Emotion Robot (RREA)
 
-Docker-first ROS 2 Humble project with two deployment modes from `config/project.yaml`:
+ROS 2 Humble + Docker deployment for emotion-aware interaction with two runtime modes:
 
-- `robot_only`
-- `laptop_offload` with `gateway.transport` as `local_tcp` or `ngrok_tcp`
+- `robot_only`: all processing on Mustar robot host
+- `laptop_offload`: robot publishes camera/audio feed, laptop runs inference, robot speaks response
 
-Detailed docs:
+Primary runbooks:
 
-- [Installation Guide](INSTALLATION.md)
-- [Quickstart Runbook](QUICKSTART.md)
+- [INSTALLATION.md](INSTALLATION.md)
+- [QUICKSTART.md](QUICKSTART.md)
 
-## Audio/STT/TTS Configuration
+## Real-World Deployment Notes (May 20, 2026)
 
-The project config includes explicit audio I/O and STT/TTS knobs in `config/project.yaml`:
+- Mustar deployments are SSH-first and typically headless.
+- Ubuntu 18.04 hosts should use Docker CLI engine only (no Docker Desktop).
+- This repo requires Docker Compose v2 plugin (`docker compose ...`), not legacy `docker-compose` v1.
+- ORBBEC ASTRA is non-UVC in this project path; use USB bus pass-through + OpenNI path, not `/dev/video*` assumptions.
 
-- `audio.input_topic` (default: `/audio/raw`)
-- `audio.emotion_topic` (default: `/audio/emotion`)
-- `audio.sample_rate_hz` (default: `16000`)
-- `audio.chunk_bytes` (default: `4096`)
-- `stt.enabled` / `stt.backend` / `stt.language` / `stt.transcript_topic`
-- `tts.enabled` / `tts.backend` / `tts.voice` / `tts.output_topic`
+## Architecture (Dual Mode)
 
-Current runtime note:
+### 1) Robot-only
 
-- `stt.enabled` and `tts.enabled` are now set to `true` in `config/project.yaml`.
-- Launch files now map `stt.enabled`, `stt.backend`, `stt.transcript_topic`, `audio.input_topic`, `tts.enabled`, `tts.backend`, and `tts.output_topic` into node parameters/remaps.
-- Fallback behavior: `stt.backend=mock` maps to `none` (fallback transcript path), and `tts.backend=mock` maps to `none` (log-only fallback instead of speaker output).
+- Robot container captures camera/mic, runs full pipeline, sends `/robot/say` to local TTS.
 
-## Implementation Status Snapshot
+### 2) Laptop offload
 
-- Implemented topics: `/camera/emotion`, `/audio/emotion`, `/speech/text`, `/text/sentiment`, `/emotion/final`, `/robot/response`, `/robot/say`.
-- Implemented launch paths: `system.launch.py`, `robot_only.launch.py`, `laptop_inference.launch.py`, `robot_endpoint.launch.py`.
-- Current partial area: emotion inference quality.
-  - Vision and audio emotion nodes are wired with OpenCV/DeepFace/librosa dependencies, but runtime quality remains under validation.
-  - STT backend path is wired for backend selection, but Whisper-first production behavior is still pending.
-- Tracking docs:
-  - [tasks.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks.md)
-  - [CONFIG_WIRING_AUDIT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/CONFIG_WIRING_AUDIT.md)
-  - [FOUNDATION_TOPIC_CONTRACT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/FOUNDATION_TOPIC_CONTRACT.md)
+- Robot side: camera/audio acquisition + gateway client.
+- Laptop side: inference gateway server + modality/fusion/response nodes.
+- Robot side output: receives response and publishes speaker output.
 
-Linux examples:
+Operational order for offload mode:
+
+1. Launch laptop inference first.
+2. Launch robot endpoint second.
+3. Confirm gateway connection in logs before validation.
+
+## Mustar SSH Setup (Operator Baseline)
+
+Run on operator laptop:
 
 ```bash
-scripts/config.sh set deployment.mode robot_only
-scripts/config.sh set audio.sample_rate_hz 16000
-scripts/config.sh set stt.enabled true
-scripts/config.sh set tts.enabled true
-scripts/config.sh get stt.enabled
+ssh-keygen -t ed25519 -C "mustar-ops" -f ~/.ssh/mustar_ed25519
+ssh-copy-id -i ~/.ssh/mustar_ed25519.pub <mustar_user>@<mustar_ip>
+ssh -i ~/.ssh/mustar_ed25519 <mustar_user>@<mustar_ip>
 ```
 
-Windows PowerShell examples:
+Optional `~/.ssh/config` profile:
 
-```powershell
-.\scripts\windows\config.ps1 set deployment.mode robot_only
-.\scripts\windows\config.ps1 set audio.sample_rate_hz 16000
-.\scripts\windows\config.ps1 set stt.enabled true
-.\scripts\windows\config.ps1 set tts.enabled true
-.\scripts\windows\config.ps1 get stt.enabled
+```sshconfig
+Host mustar
+  HostName <mustar_ip>
+  User <mustar_user>
+  IdentityFile ~/.ssh/mustar_ed25519
+  ServerAliveInterval 30
+  ServerAliveCountMax 4
 ```
 
-## Quick start
+Then use:
 
-Fast one-command Mustar deployment (on-board camera/mic/speaker, Linux):
+```bash
+ssh mustar
+```
+
+## One-Command Mustar Deploy
 
 ```bash
 cd ROS2-Robot-Emotion-Aware-RREA-
 scripts/deploy_mustar.sh robot_only
 ```
 
-What it does:
-
-- verifies host + container camera/mic/speaker devices
-- builds images and `ros2_ws`
-- launches the correct bringup (`robot_only` or `laptop_offload`)
-
-Laptop-offload one-command variant:
+Offload variant:
 
 ```bash
 scripts/deploy_mustar.sh laptop_offload
 ```
 
+`deploy_mustar.sh` performs host/container AV checks, builds images, predownloads Whisper/HF models, builds `ros2_ws`, then launches the selected bringup.
+
+## Camera Constraints (ORBBEC ASTRA)
+
+- ASTRA is treated as `vision.source=astra` with `/dev/bus/usb` mapping.
+- UVC mode (`vision.source=uvc`) expects `/dev/video0` or `/dev/video1`.
+- Do not mix ASTRA and UVC assumptions in the same runbook.
+
+Set ASTRA mode:
+
 ```bash
-cd ROS2-Robot-Emotion-Aware-RREA-
-scripts/build.sh
+scripts/config.sh set vision.source astra
 scripts/up.sh
 ```
 
-Windows PowerShell quick start:
+## Model Predownload Workflow
 
-```powershell
-cd ROS2-Robot-Emotion-Aware-RREA-
-.\scripts\windows\build.ps1
-.\scripts\windows\up.ps1
-```
+Model warm-up is required on first run (or after cache cleanup):
 
-Robot-only launch:
+- Whisper `base`
+- HF sentiment model `cardiffnlp/twitter-roberta-base-sentiment-latest`
 
-```bash
-docker compose -f docker/docker-compose.yml exec robot bash -lc "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 launch emotion_robot_bringup robot_only.launch.py"
-```
-
-Robot-only launch (Windows PowerShell):
-
-```powershell
-.\scripts\windows\launch_robot_only.ps1
-```
-
-Laptop-offload launch:
+Predownload is automatic in `scripts/deploy_mustar.sh`. Manual container predownload:
 
 ```bash
-docker compose -f docker/docker-compose.yml exec laptop bash -lc "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 launch emotion_robot_bringup laptop_inference.launch.py"
-docker compose -f docker/docker-compose.yml exec robot bash -lc "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 launch emotion_robot_bringup robot_endpoint.launch.py"
+docker compose -f docker/docker-compose.yml exec -T robot bash -lc "python3 - <<'PY'
+from huggingface_hub import snapshot_download
+import whisper
+whisper.load_model('base')
+snapshot_download(repo_id='cardiffnlp/twitter-roberta-base-sentiment-latest')
+print('prefetch complete')
+PY"
 ```
 
-Laptop-offload launch (Windows PowerShell):
+## Known Blockers and Workarounds
 
-```powershell
-.\scripts\windows\launch_laptop_inference.ps1
-.\scripts\windows\launch_robot_endpoint.ps1
-```
-
-### Laptop-offload configuration details
-
-`scripts/up.sh` behaves differently by `gateway.transport`:
-
-- `local_tcp`: it prints the local target and you must export `ROBOT_GATEWAY_HOST` before launching the robot endpoint.
-- `ngrok_tcp`: set the configured ngrok token env var (default from `config/project.yaml`: `NGROK_AUTHTOKEN`) before `scripts/up.sh`.
-
-Examples:
-
-```bash
-# local_tcp
-export ROBOT_GATEWAY_HOST=127.0.0.1
-scripts/up.sh
-
-# ngrok_tcp
-export NGROK_AUTHTOKEN=<your_token>
-scripts/up.sh
-scripts/ngrok-url.sh
-```
-
-Windows script equivalents:
-
-```powershell
-.\scripts\windows\config.ps1 get deployment.mode
-.\scripts\windows\build.ps1
-.\scripts\windows\up.ps1
-.\scripts\windows\doctor.ps1
-.\scripts\windows\launch_robot_only.ps1
-.\scripts\windows\launch_laptop_inference.ps1
-.\scripts\windows\launch_robot_endpoint.ps1
-.\scripts\windows\shell.ps1 robot
-.\scripts\windows\down.ps1
-.\scripts\windows\clean.ps1
-.\scripts\windows\rebuild.ps1
-.\scripts\windows\install_deps.ps1
-```
-
-### Container audio I/O (robot_only and laptop_offload)
-
-- `scripts/up.sh` and `.\scripts\windows\up.ps1` now auto-map `/dev/snd` when available.
-- Verify audio mapping with:
-  - Linux: `scripts/doctor.sh`
-  - Windows: `.\scripts\windows\doctor.ps1`
-- Test mic capture and playback inside a running container:
-  - Linux: `scripts/audio-test.sh robot 3` (or `laptop`)
-  - Windows: `.\scripts\windows\audio-test.ps1 robot 3` (or `laptop`)
-- Verified on Linux on May 19, 2026: `scripts/audio-test.sh robot 3` completed successfully.
-
-## Test Coverage For Audio/STT/TTS + Mode Switching
-
-Run integration/config tests from repo root:
-
-```bash
-python3 -m pytest -q tests/test_project_config.py tests/test_lib_config.py tests/test_up_script_modes.py
-```
-
-Windows PowerShell:
-
-```powershell
-python -m pytest -q tests/test_project_config.py tests/test_lib_config.py tests/test_up_script_modes.py
-```
+- `docker-compose: command not found` or v1 syntax mismatch.
+  - Workaround: install Compose v2 plugin and use `docker compose`.
+- ASTRA not detected via `/dev/video*`.
+  - Workaround: `vision.source=astra`, pass `/dev/bus/usb`, validate `lsusb` vendor `2bc5`.
+- Offload mode starts but no inference results.
+  - Workaround: ensure laptop inference is launched before robot endpoint; confirm host/port from config.
+- First inference cycle is very slow.
+  - Workaround: run predownload workflow before demo/runtime validation.

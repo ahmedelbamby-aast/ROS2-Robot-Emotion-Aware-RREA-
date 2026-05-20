@@ -1,5 +1,11 @@
 # Phase 1 Tasks: Foundation and Infrastructure
 
+## Current Operational Constraints (May 20, 2026)
+
+- Enforce Docker Compose v2 plugin requirement across Linux hosts, including Ubuntu 18.04 CLI-only installations.
+- Mustar readiness includes SSH connectivity, repo sync, and device preflight before launch.
+- Camera prerequisites must distinguish UVC (`/dev/video*`) from ASTRA non-UVC (`/dev/bus/usb`) paths.
+
 ## Current Status Sync (May 19, 2026)
 
 - `FND-03`: completed documentation artifact exists in [FOUNDATION_TOPIC_CONTRACT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/FOUNDATION_TOPIC_CONTRACT.md).
