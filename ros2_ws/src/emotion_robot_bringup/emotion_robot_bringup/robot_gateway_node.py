@@ -91,22 +91,29 @@ class RobotGatewayNode(Node):
 
     def connect_and_start(self):
         self.sock = socket.create_connection((self.host, self.port), timeout=5)
+        # Use blocking mode for the long-lived reader loop after initial connect.
+        self.sock.settimeout(None)
         threading.Thread(target=self.reader, daemon=True).start()
         self.get_logger().info(f"connected to laptop gateway at {self.host}:{self.port}")
 
     def reader(self):
-        f = self.sock.makefile("r", encoding="utf-8")
-        for line in f:
-            msg = json.loads(line.strip())
-            out = String()
-            out.data = msg.get("data", "")
-            route = route_robot_incoming_topic(msg.get("topic"))
-            if route == "emotion":
-                self.pub_emotion.publish(out)
-            elif route == "response":
-                self.pub_response.publish(out)
-            elif route == "say":
-                self.pub_say.publish(out)
+        try:
+            f = self.sock.makefile("r", encoding="utf-8")
+            for line in f:
+                if not line.strip():
+                    continue
+                msg = json.loads(line.strip())
+                out = String()
+                out.data = msg.get("data", "")
+                route = route_robot_incoming_topic(msg.get("topic"))
+                if route == "emotion":
+                    self.pub_emotion.publish(out)
+                elif route == "response":
+                    self.pub_response.publish(out)
+                elif route == "say":
+                    self.pub_say.publish(out)
+        except Exception as exc:
+            self.get_logger().warning(f"gateway reader stopped: {exc}")
 
     def send(self, topic, data):
         if not self.sock:

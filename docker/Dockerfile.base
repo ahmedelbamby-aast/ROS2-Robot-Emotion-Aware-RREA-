@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-image-transport ros-humble-cv-bridge ros-humble-tf2-msgs \
     ros-humble-nav-msgs ros-humble-diagnostic-msgs ros-humble-sensor-msgs \
     ros-humble-std-msgs \
-    net-tools iputils-ping curl jq alsa-utils && \
+    net-tools iputils-ping curl jq alsa-utils ffmpeg \
+    libgl1 libglib2.0-0 libsndfile1 portaudio19-dev && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace

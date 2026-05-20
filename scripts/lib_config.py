@@ -27,7 +27,10 @@ def read_cfg():
 
 def write_cfg(cfg):
     with open(CFG, "w", encoding="utf-8") as f:
-        yaml.safe_dump(cfg, f, sort_keys=False)
+        try:
+            yaml.safe_dump(cfg, f, sort_keys=False)
+        except TypeError:
+            yaml.safe_dump(cfg, f)
 
 
 def parse_value(raw):

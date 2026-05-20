@@ -21,6 +21,24 @@ The project config includes explicit audio I/O and STT/TTS knobs in `config/proj
 - `stt.enabled` / `stt.backend` / `stt.language` / `stt.transcript_topic`
 - `tts.enabled` / `tts.backend` / `tts.voice` / `tts.output_topic`
 
+Current runtime note:
+
+- `stt.enabled` and `tts.enabled` are now set to `true` in `config/project.yaml`.
+- Launch files now map `stt.enabled`, `stt.backend`, `stt.transcript_topic`, `audio.input_topic`, `tts.enabled`, `tts.backend`, and `tts.output_topic` into node parameters/remaps.
+- Fallback behavior: `stt.backend=mock` maps to `none` (fallback transcript path), and `tts.backend=mock` maps to `none` (log-only fallback instead of speaker output).
+
+## Implementation Status Snapshot
+
+- Implemented topics: `/camera/emotion`, `/audio/emotion`, `/speech/text`, `/text/sentiment`, `/emotion/final`, `/robot/response`, `/robot/say`.
+- Implemented launch paths: `system.launch.py`, `robot_only.launch.py`, `laptop_inference.launch.py`, `robot_endpoint.launch.py`.
+- Current partial area: emotion inference quality.
+  - Vision and audio emotion nodes are wired with OpenCV/DeepFace/librosa dependencies, but runtime quality remains under validation.
+  - STT backend path is wired for backend selection, but Whisper-first production behavior is still pending.
+- Tracking docs:
+  - [tasks.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks.md)
+  - [CONFIG_WIRING_AUDIT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/CONFIG_WIRING_AUDIT.md)
+  - [FOUNDATION_TOPIC_CONTRACT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/FOUNDATION_TOPIC_CONTRACT.md)
+
 Linux examples:
 
 ```bash
@@ -43,8 +61,27 @@ Windows PowerShell examples:
 
 ## Quick start
 
+Fast one-command Mustar deployment (on-board camera/mic/speaker, Linux):
+
 ```bash
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
+scripts/deploy_mustar.sh robot_only
+```
+
+What it does:
+
+- verifies host + container camera/mic/speaker devices
+- builds images and `ros2_ws`
+- launches the correct bringup (`robot_only` or `laptop_offload`)
+
+Laptop-offload one-command variant:
+
+```bash
+scripts/deploy_mustar.sh laptop_offload
+```
+
+```bash
+cd ROS2-Robot-Emotion-Aware-RREA-
 scripts/build.sh
 scripts/up.sh
 ```
@@ -52,7 +89,7 @@ scripts/up.sh
 Windows PowerShell quick start:
 
 ```powershell
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
 .\scripts\windows\build.ps1
 .\scripts\windows\up.ps1
 ```
@@ -129,10 +166,11 @@ Windows script equivalents:
 - Test mic capture and playback inside a running container:
   - Linux: `scripts/audio-test.sh robot 3` (or `laptop`)
   - Windows: `.\scripts\windows\audio-test.ps1 robot 3` (or `laptop`)
+- Verified on Linux on May 19, 2026: `scripts/audio-test.sh robot 3` completed successfully.
 
 ## Test Coverage For Audio/STT/TTS + Mode Switching
 
-Run integration/config tests from `emotion_robot/`:
+Run integration/config tests from repo root:
 
 ```bash
 python3 -m pytest -q tests/test_project_config.py tests/test_lib_config.py tests/test_up_script_modes.py

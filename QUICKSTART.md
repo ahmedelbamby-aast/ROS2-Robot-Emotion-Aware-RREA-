@@ -2,12 +2,37 @@
 
 This is the fastest reliable path to run the project in Linux or Windows.
 
+## Current State Before You Run
+
+- `DONE`: core pipeline topics are present and wired through launch flows.
+- `PARTIAL`: model quality is not final yet.
+  - vision and audio emotion currently include heuristic fallback behavior.
+  - STT backend selection is wired but not final Whisper-first production behavior.
+- Use [tasks.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks.md) as source of truth for remaining work.
+
 ## A. Linux Quickstart
+
+### A0. One-Command Mustar Deploy (Recommended)
+
+For Mustar on-board camera/mic/speaker:
+
+```bash
+cd ROS2-Robot-Emotion-Aware-RREA-
+scripts/deploy_mustar.sh robot_only
+```
+
+This single command verifies audio/video devices, builds `ros2_ws`, and launches the correct bringup.
+
+For laptop offload:
+
+```bash
+scripts/deploy_mustar.sh laptop_offload
+```
 
 ### A1. Build and Start Containers
 
 ```bash
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
 scripts/build.sh
 scripts/up.sh
 docker compose -f docker/docker-compose.yml ps
@@ -99,7 +124,7 @@ scripts/audio-test.sh laptop 3
 ### B1. Build and Start
 
 ```powershell
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
 .\scripts\windows\build.ps1
 .\scripts\windows\up.ps1
 docker compose -f docker/docker-compose.yml ps
@@ -195,6 +220,11 @@ python -m pytest -q tests/test_project_config.py tests/test_lib_config.py tests/
 
 These commands configure audio capture/processing and STT/TTS toggles for both modes.
 
+Important:
+
+- STT/TTS config keys are launch-wired for `enabled`, `backend`, and output topics.
+- Runtime fallback behavior is backend-dependent: `mock` maps to `none` for STT/TTS fallback mode.
+
 Linux `robot_only`:
 
 ```bash
@@ -204,8 +234,16 @@ scripts/config.sh set audio.emotion_topic /audio/emotion
 scripts/config.sh set audio.sample_rate_hz 16000
 scripts/config.sh set audio.chunk_bytes 4096
 scripts/config.sh set stt.enabled true
-scripts/config.sh set stt.backend mock
+scripts/config.sh set stt.backend whisper
 scripts/config.sh set tts.enabled true
+scripts/config.sh set tts.backend pyttsx3
+scripts/up.sh
+```
+
+Fallback run:
+
+```bash
+scripts/config.sh set stt.backend mock
 scripts/config.sh set tts.backend mock
 scripts/up.sh
 ```
@@ -219,8 +257,16 @@ Windows `robot_only`:
 .\scripts\windows\config.ps1 set audio.sample_rate_hz 16000
 .\scripts\windows\config.ps1 set audio.chunk_bytes 4096
 .\scripts\windows\config.ps1 set stt.enabled true
-.\scripts\windows\config.ps1 set stt.backend mock
+.\scripts\windows\config.ps1 set stt.backend whisper
 .\scripts\windows\config.ps1 set tts.enabled true
+.\scripts\windows\config.ps1 set tts.backend pyttsx3
+.\scripts\windows\up.ps1
+```
+
+Fallback run:
+
+```powershell
+.\scripts\windows\config.ps1 set stt.backend mock
 .\scripts\windows\config.ps1 set tts.backend mock
 .\scripts\windows\up.ps1
 ```
@@ -251,7 +297,18 @@ $env:ROBOT_GATEWAY_HOST = \"127.0.0.1\"
 
 Validated in Linux environment on May 19, 2026:
 
-- `scripts/build.sh` succeeded after resolving a local image-tag conflict by removing old `emotion_robot:laptop`/`emotion_robot:robot` tags.
+- `scripts/build.sh` succeeded.
 - `scripts/up.sh` succeeded and both services started.
+- `scripts/doctor.sh` confirmed `/dev/snd` mapped for `robot`.
+- `scripts/audio-test.sh robot 3` succeeded (capture + playback).
 - `robot_only.launch.py` and `laptop_inference.launch.py` started successfully.
 - `robot_endpoint.launch.py` connected successfully when laptop gateway was running concurrently.
+
+## F. Phase Execution Checklist (Owner Ready)
+
+- [ ] `PLAT` Build and bring up containers from clean checkout.
+- [ ] `ROS` Launch `robot_only` and verify required topic graph.
+- [ ] `ROS` Launch `laptop_offload` pair and verify gateway link and required topic graph.
+- [ ] `QA` Run tests listed in section C and archive logs under `artifacts/phase3/`.
+- [ ] `QA` Run `scripts/audio-test.sh robot 3` and `scripts/audio-test.sh laptop 3` where applicable.
+- [ ] `DOCS` Update tracker status in [tasks.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks.md) after each gate.

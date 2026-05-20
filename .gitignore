@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# ROS/colcon outputs
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Runtime artifacts
+runtime/
+artifacts/
+
+# OS/editor
+.DS_Store
+Thumbs.db

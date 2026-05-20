@@ -2,15 +2,23 @@
 
 This guide covers full setup for Linux and Windows.
 
+## Status Note (May 19, 2026)
+
+- Installation and run path is working for current pipeline.
+- Not all checklist quality targets are complete yet:
+  - vision/audio emotion quality still has heuristic behavior,
+  - STT backend quality is still not Whisper-first production behavior.
+- Foundation wiring truth is tracked in [CONFIG_WIRING_AUDIT.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/CONFIG_WIRING_AUDIT.md).
+
 ## 1. Repository Layout
 
 Expected root:
 
-- `emotion_robot/`
-- `emotion_robot/docker/`
-- `emotion_robot/scripts/`
-- `emotion_robot/scripts/windows/`
-- `emotion_robot/config/project.yaml`
+- `ROS2-Robot-Emotion-Aware-RREA-/`
+- `ROS2-Robot-Emotion-Aware-RREA-/docker/`
+- `ROS2-Robot-Emotion-Aware-RREA-/scripts/`
+- `ROS2-Robot-Emotion-Aware-RREA-/scripts/windows/`
+- `ROS2-Robot-Emotion-Aware-RREA-/config/project.yaml`
 
 ## 2. Linux Installation (Ubuntu 22.04+ Recommended)
 
@@ -61,7 +69,7 @@ docker info
 From project root:
 
 ```bash
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
 python3 -m pip install --user pyyaml
 ```
 
@@ -76,7 +84,7 @@ export NGROK_AUTHTOKEN=<your_token>
 ### 2.4 Build Images
 
 ```bash
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
 scripts/build.sh
 ```
 
@@ -91,6 +99,23 @@ Health check:
 ```bash
 docker compose -f docker/docker-compose.yml ps
 scripts/doctor.sh
+```
+
+### 2.6 One-Command Mustar Deploy (Recommended)
+
+For Mustar on-board camera/mic/speaker deployment:
+
+```bash
+cd ROS2-Robot-Emotion-Aware-RREA-
+scripts/deploy_mustar.sh robot_only
+```
+
+This command runs preflight checks for camera/mic/speaker, builds images, builds `ros2_ws`, and launches the robot bringup.
+
+For laptop offload:
+
+```bash
+scripts/deploy_mustar.sh laptop_offload
 ```
 
 ## 3. Windows Installation (Windows 10/11 + Docker Desktop)
@@ -125,7 +150,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ### 3.3 Project Dependencies
 
 ```powershell
-cd emotion_robot
+cd ROS2-Robot-Emotion-Aware-RREA-
 .\scripts\windows\install_deps.ps1
 ```
 
@@ -182,6 +207,14 @@ Relevant keys:
 - `audio.input_topic`, `audio.emotion_topic`, `audio.sample_rate_hz`, `audio.chunk_bytes`
 - `stt.enabled`, `stt.backend`, `stt.language`, `stt.transcript_topic`
 - `tts.enabled`, `tts.backend`, `tts.voice`, `tts.output_topic`
+
+Notes:
+
+- Default repo config currently has `stt.enabled: true` and `tts.enabled: true`.
+- Launch files wire `stt.enabled`, `stt.backend`, `stt.transcript_topic`, `audio.input_topic`, `tts.enabled`, `tts.backend`, and `tts.output_topic`.
+- Fallback semantics:
+  - `stt.backend=mock` maps to STT `none` backend with fallback transcript behavior.
+  - `tts.backend=mock` maps to TTS `none` engine with log-only fallback.
 
 Linux commands:
 
@@ -315,3 +348,18 @@ Windows:
 .\scripts\windows\down.ps1
 .\scripts\windows\clean.ps1
 ```
+
+## 8. Known Current State (May 19, 2026)
+
+- Container audio mapping via `/dev/snd` is auto-enabled when available by `scripts/up.sh` and `.\scripts\windows\up.ps1`.
+- Linux validation confirmed `scripts/audio-test.sh robot 3` passes end-to-end in container (record + playback).
+
+## 9. Installation Completion Checklist (Owner Ready)
+
+- [ ] `PLAT` Validate Linux prerequisites and Docker/Compose versions on target machine.
+- [ ] `PLAT` Validate Windows prerequisites and Docker Desktop/WSL integration.
+- [ ] `PLAT` Build images from clean checkout.
+- [ ] `ROS` Verify launch success for `robot_only`.
+- [ ] `ROS` Verify launch success for `laptop_offload` with `local_tcp`.
+- [ ] `QA` Run doctor + test commands and archive outputs.
+- [ ] `DOCS` Mark completion status in [tasks_phase1_foundation.md](/home/mohamed/Desktop/Cognitive%20Project/ROS2-Robot-Emotion-Aware-RREA-/tasks_phase1_foundation.md).

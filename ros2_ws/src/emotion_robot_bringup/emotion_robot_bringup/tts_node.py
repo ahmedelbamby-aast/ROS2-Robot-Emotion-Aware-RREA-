@@ -6,19 +6,48 @@ from rclpy.node import Node
 from std_msgs.msg import String
 
 
+def resolve_tts_engine(backend: str, engine: str) -> str:
+    backend_clean = str(backend or "").strip().lower()
+    if backend_clean:
+        return backend_clean
+    return str(engine or "").strip().lower()
+
+
+def resolve_topic_name(primary: str, fallback: str) -> str:
+    primary_clean = str(primary or "").strip()
+    if primary_clean:
+        return primary_clean
+    return str(fallback or "").strip()
+
+
 class TtsNode(Node):
     def __init__(self):
         super().__init__("tts_node")
+        self.declare_parameter("backend", "pyttsx3")
         self.declare_parameter("engine", "pyttsx3")
         self.declare_parameter("enabled", True)
+        self.declare_parameter("output_topic", "")
+        self.declare_parameter("say_topic", "/robot/say")
+        self.declare_parameter("status_topic", "")
         self.declare_parameter("log_only_when_unavailable", True)
 
-        self._engine_name = str(self.get_parameter("engine").value).strip().lower()
+        self._engine_name = resolve_tts_engine(
+            backend=str(self.get_parameter("backend").value),
+            engine=str(self.get_parameter("engine").value),
+        )
         self._enabled = bool(self.get_parameter("enabled").value)
+        input_topic = resolve_topic_name(
+            primary=str(self.get_parameter("output_topic").value),
+            fallback=str(self.get_parameter("say_topic").value),
+        )
+        status_topic = resolve_topic_name(
+            primary=str(self.get_parameter("status_topic").value),
+            fallback="/speech/tts_status",
+        )
         self._log_only_when_unavailable = bool(self.get_parameter("log_only_when_unavailable").value)
 
-        self._pub_status = self.create_publisher(String, "/speech/tts_status", 10)
-        self.create_subscription(String, "/robot/say", self.on_say, 10)
+        self._pub_status = self.create_publisher(String, status_topic, 10)
+        self.create_subscription(String, input_topic, self.on_say, 10)
 
         self._q = queue.Queue(maxsize=20)
         self._tts_engine = None

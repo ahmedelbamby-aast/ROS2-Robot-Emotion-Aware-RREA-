@@ -18,12 +18,12 @@ audio:
   sample_rate_hz: 16000
   chunk_bytes: 4096
 stt:
-  enabled: false
+  enabled: true
   backend: mock
   language: en-US
-  transcript_topic: /text/raw
+  transcript_topic: /speech/text
 tts:
-  enabled: false
+  enabled: true
   backend: mock
   voice: default
-  output_topic: /speech/out
+  output_topic: /robot/say
